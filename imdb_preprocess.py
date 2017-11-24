@@ -122,8 +122,13 @@ def main():
                         help='Label file path.')
   args=parser.parse_args()
 
+  global IMG_DIR
   IMG_DIR = args.imgpath
+  global MAT_FILE
   MAT_FILE = args.labelpath
+
+  print(IMG_DIR)
+  print(MAT_FILE)
 
   imdb_dict=reformat_imdb()
   print("Dictionary created...")
@@ -132,6 +137,7 @@ def main():
   create_and_dump(imdb_dict, args.partial)
 
   print("File dumped to imdb_data_{}.pkl.".format(args.partial))
+
 
 if __name__ == "__main__":
   main()
