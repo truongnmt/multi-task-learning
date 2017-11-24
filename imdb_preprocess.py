@@ -133,5 +133,6 @@ def main():
 
   print("File dumped to imdb_data_{}.pkl.".format(args.partial))
 
+
 if __name__ == "__main__":
   main()
