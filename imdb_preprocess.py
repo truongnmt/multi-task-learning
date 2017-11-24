@@ -122,8 +122,13 @@ def main():
                         help='Label file path.')
   args=parser.parse_args()
 
+  global IMG_DIR
   IMG_DIR = args.imgpath
+  global MAT_FILE
   MAT_FILE = args.labelpath
+
+  print(IMG_DIR)
+  print(MAT_FILE)
 
   imdb_dict=reformat_imdb()
   print("Dictionary created...")
