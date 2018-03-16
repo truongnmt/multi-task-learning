@@ -120,11 +120,11 @@ def BKNetModel(x):
     gender_fc1 = _FC('gender_fc1', x, 256, keep_prob)
     gender_fc2 = _FC('gender_fc2', gender_fc1, 256, keep_prob)
     y_gender_conv = _FC('gender_softmax', gender_fc2, 2, keep_prob, 'softmax')
-    
+
     # Age branch
     age_fc1 = _FC('age_fc1', x, 256, keep_prob)
     age_fc2 = _FC('age_fc2', age_fc1, 256, keep_prob)
-    y_age_conv = _FC('age_softmax', age_fc2, 2, keep_prob, 'softmax')
+    y_age_conv = _FC('age_softmax', age_fc2, 4, keep_prob, 'softmax')
 
     return y_smile_conv, y_gender_conv, y_age_conv, phase_train, keep_prob
 
@@ -138,8 +138,8 @@ def selective_loss(y_smile_conv, y_gender_conv, y_age_conv, y_, mask):
     age_mask = tf.cast(tf.equal(mask, vector_two), tf.float32)
 
     tf.add_to_collection('smile_mask', smile_mask)
-    tf.add_to_collection('emotion_mask', emotion_mask)
     tf.add_to_collection('gender_mask', gender_mask)
+    tf.add_to_collection('age_mask', age_mask)
 
     y_smile = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
     y_gender = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
