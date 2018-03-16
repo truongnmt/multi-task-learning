@@ -106,8 +106,8 @@ if __name__ == "__main__":
         avg_age_loss = []
 
         smile_nb_true_pred = 0
-        age_true_pred = 0
-        age_true_pred = 0
+        gender_nb_true_pred = 0
+        age_nb_true_pred = 0
 
         smile_nb_train = 0
         gender_nb_train = 0
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
             batch_img = CNN2Head_input.augmentation(batch_img, 48)
 
-            ttl, sml, eml, gel, l2l, _ = sess.run([loss, smile_loss, gender_loss, age_loss, l2_loss, train_step],
+            ttl, sml, gel, agl, l2l, _ = sess.run([loss, smile_loss, gender_loss, age_loss, l2_loss, train_step],
                                                   feed_dict={x: batch_img, y_: batch_label, mask: batch_mask,
                                                              phase_train: True,
                                                              keep_prob: 0.5})
@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
         print('Smile task train accuracy: ' + str(smile_train_accuracy * 100))
         print('Gender task train accuracy: ' + str(gender_train_accuracy * 100))
-        print('Age task train accuracy: ' + str(emotion_age_accuracy * 100))
+        print('Age task train accuracy: ' + str(age_train_accuracy * 100))
         print('Total loss: ' + str(avg_ttl) + '. L2-loss: ' + str(avg_rgl))
         
         print('Smile loss: ' + str(avg_smile_loss))
