@@ -150,11 +150,14 @@ def selective_loss(y_smile_conv, y_gender_conv, y_age_conv, y_, mask):
     tf.add_to_collection('y_age', y_age)
 
     smile_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_smile * tf.log(y_smile_conv), axis=1) * smile_mask) / tf.reduce_sum(smile_mask)
+        tf.reduce_sum(-y_smile * tf.log(y_smile_conv), axis=1) * smile_mask) / tf.clip_by_value(
+        tf.reduce_sum(smile_mask), 1, 1e9)
     gender_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_gender * tf.log(y_gender_conv), axis=1) * gender_mask) / tf.reduce_sum(gender_mask)
+        tf.reduce_sum(-y_gender * tf.log(y_gender_conv), axis=1) * gender_mask) / tf.clip_by_value(
+        tf.reduce_sum(gender_mask), 1, 1e9)
     age_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_age * tf.log(y_age_conv), axis=1) * age_mask) / tf.reduce_sum(age_mask)
+        tf.reduce_sum(-y_age * tf.log(y_age_conv), axis=1) * age_mask) / tf.clip_by_value(
+        tf.reduce_sum(age_mask), 1, 1e9)
 
     l2_loss = []
     for var in tf.trainable_variables():
