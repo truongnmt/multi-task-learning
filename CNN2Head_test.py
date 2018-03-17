@@ -1,9 +1,6 @@
 import CNN2Head_input
 import tensorflow as tf
 import numpy as np
-import os
-
-os.environ['CUDA_VISIBLE_DEVICES']='3'
 
 SAVE_FOLDER = 'D:/LeTranBaoCuong/CNN2Head/save/current'
 
