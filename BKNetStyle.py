@@ -89,7 +89,7 @@ def VGG_ConvBlock(name, x, in_filters, out_filters, repeat, strides, phase_train
 
 def Input():
     x = tf.placeholder(tf.float32, [None, IMG_SIZE, IMG_SIZE, 1])
-    y_ = tf.placeholder(tf.float32, [None, 7])
+    y_ = tf.placeholder(tf.float32, [None, 4])
     mask = tf.placeholder(tf.float32, [BATCH_SIZE])
 
     return x, y_, mask
@@ -116,49 +116,48 @@ def BKNetModel(x):
     smile_fc2 = _FC('smile_fc2', smile_fc1, 256, keep_prob)
     y_smile_conv = _FC('smile_softmax', smile_fc2, 2, keep_prob, 'softmax')
 
-    # Emotion branch
-    emotion_fc1 = _FC('emotion_fc1', x, 256, keep_prob)
-    emotion_fc2 = _FC('emotion_fc2', emotion_fc1, 256, keep_prob)
-    y_emotion_conv = _FC('emotion_softmax', emotion_fc2, 7, keep_prob, 'linear')
-
     # Gender branch
     gender_fc1 = _FC('gender_fc1', x, 256, keep_prob)
     gender_fc2 = _FC('gender_fc2', gender_fc1, 256, keep_prob)
     y_gender_conv = _FC('gender_softmax', gender_fc2, 2, keep_prob, 'softmax')
 
-    return y_smile_conv, y_emotion_conv, y_gender_conv, phase_train, keep_prob
+    # Age branch
+    age_fc1 = _FC('age_fc1', x, 256, keep_prob)
+    age_fc2 = _FC('age_fc2', age_fc1, 256, keep_prob)
+    y_age_conv = _FC('age_softmax', age_fc2, 4, keep_prob, 'softmax')
 
+    return y_smile_conv, y_gender_conv, y_age_conv, phase_train, keep_prob
 
-def selective_svm_loss(y_smile_conv, y_emotion_conv, y_gender_conv, y_, mask):
+def selective_loss(y_smile_conv, y_gender_conv, y_age_conv, y_, mask):
     vector_zero = tf.constant(0., tf.float32, [BATCH_SIZE])
     vector_one = tf.constant(1., tf.float32, [BATCH_SIZE])
     vector_two = tf.constant(2., tf.float32, [BATCH_SIZE])
 
     smile_mask = tf.cast(tf.equal(mask, vector_zero), tf.float32)
-    emotion_mask = tf.cast(tf.equal(mask, vector_one), tf.float32)
-    gender_mask = tf.cast(tf.equal(mask, vector_two), tf.float32)
+    gender_mask = tf.cast(tf.equal(mask, vector_one), tf.float32)
+    age_mask = tf.cast(tf.equal(mask, vector_two), tf.float32)
 
     tf.add_to_collection('smile_mask', smile_mask)
-    tf.add_to_collection('emotion_mask', emotion_mask)
     tf.add_to_collection('gender_mask', gender_mask)
+    tf.add_to_collection('age_mask', age_mask)
 
     y_smile = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
-    y_emotion = tf.slice(y_, [0, 0], [BATCH_SIZE, 7])
     y_gender = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
+    y_age = tf.slice(y_, [0, 0], [BATCH_SIZE, 4])
 
     tf.add_to_collection('y_smile', y_smile)
-    tf.add_to_collection('y_emotion', y_emotion)
     tf.add_to_collection('y_gender', y_gender)
+    tf.add_to_collection('y_age', y_age)
 
     smile_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_smile * tf.log(y_smile_conv), axis=1) * smile_mask) / tf.reduce_sum(smile_mask)
-
+        tf.reduce_sum(-y_smile * tf.log(y_smile_conv), axis=1) * smile_mask) / tf.clip_by_value(
+        tf.reduce_sum(smile_mask), 1, 1e9)
     gender_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_gender * tf.log(y_gender_conv), axis=1) * gender_mask) / tf.reduce_sum(gender_mask)
-
-    hinge_loss = tf.maximum(y_emotion_conv - tf.reduce_sum(y_emotion_conv * y_, axis=1, keep_dims=True) + 1.0, 0.0)
-    hinge_loss = tf.reduce_sum(tf.reduce_sum(hinge_loss * hinge_loss, axis=1) * emotion_mask) / tf.reduce_sum(
-        emotion_mask)
+        tf.reduce_sum(-y_gender * tf.log(y_gender_conv), axis=1) * gender_mask) / tf.clip_by_value(
+        tf.reduce_sum(gender_mask), 1, 1e9)
+    age_cross_entropy = tf.reduce_sum(
+        tf.reduce_sum(-y_age * tf.log(y_age_conv), axis=1) * age_mask) / tf.clip_by_value(
+        tf.reduce_sum(age_mask), 1, 1e9)
 
     l2_loss = []
     for var in tf.trainable_variables():
@@ -166,48 +165,9 @@ def selective_svm_loss(y_smile_conv, y_emotion_conv, y_gender_conv, y_, mask):
             l2_loss.append(tf.nn.l2_loss(var))
     l2_loss = WEIGHT_DECAY * tf.add_n(l2_loss)
 
-    total_loss = smile_cross_entropy + hinge_loss + gender_cross_entropy + l2_loss
+    total_loss = smile_cross_entropy + gender_cross_entropy + age_cross_entropy + l2_loss
 
-    return smile_cross_entropy, hinge_loss, gender_cross_entropy, l2_loss, total_loss
-
-
-def selective_loss(y_smile_conv, y_emotion_conv, y_gender_conv, y_, mask):
-    vector_zero = tf.constant(0., tf.float32, [BATCH_SIZE])
-    vector_one = tf.constant(1., tf.float32, [BATCH_SIZE])
-    vector_two = tf.constant(2., tf.float32, [BATCH_SIZE])
-
-    smile_mask = tf.cast(tf.equal(mask, vector_zero), tf.float32)
-    emotion_mask = tf.cast(tf.equal(mask, vector_one), tf.float32)
-    gender_mask = tf.cast(tf.equal(mask, vector_two), tf.float32)
-
-    tf.add_to_collection('smile_mask', smile_mask)
-    tf.add_to_collection('emotion_mask', emotion_mask)
-    tf.add_to_collection('gender_mask', gender_mask)
-
-    y_smile = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
-    y_emotion = tf.slice(y_, [0, 0], [BATCH_SIZE, 7])
-    y_gender = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
-
-    tf.add_to_collection('y_smile', y_smile)
-    tf.add_to_collection('y_emotion', y_emotion)
-    tf.add_to_collection('y_gender', y_gender)
-
-    smile_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_smile * tf.log(y_smile_conv), axis=1) * smile_mask) / tf.reduce_sum(smile_mask)
-    emotion_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_emotion * tf.log(y_emotion_conv), axis=1) * emotion_mask) / tf.reduce_sum(emotion_mask)
-    gender_cross_entropy = tf.reduce_sum(
-        tf.reduce_sum(-y_gender * tf.log(y_gender_conv), axis=1) * gender_mask) / tf.reduce_sum(gender_mask)
-
-    l2_loss = []
-    for var in tf.trainable_variables():
-        if var.op.name.find(r'DW') > 0:
-            l2_loss.append(tf.nn.l2_loss(var))
-    l2_loss = WEIGHT_DECAY * tf.add_n(l2_loss)
-
-    total_loss = smile_cross_entropy + emotion_cross_entropy + gender_cross_entropy + l2_loss
-
-    return smile_cross_entropy, emotion_cross_entropy, gender_cross_entropy, l2_loss, total_loss
+    return smile_cross_entropy, gender_cross_entropy, age_cross_entropy, l2_loss, total_loss
 
 
 def train_op(loss, global_step):
