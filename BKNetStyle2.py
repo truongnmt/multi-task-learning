@@ -89,7 +89,7 @@ def VGG_ConvBlock(name, x, in_filters, out_filters, repeat, strides, phase_train
 
 def Input():
     x = tf.placeholder(tf.float32, [None, IMG_SIZE, IMG_SIZE, 1])
-    y_ = tf.placeholder(tf.float32, [None, 4])
+    y_ = tf.placeholder(tf.float32, [None, 101])
     mask = tf.placeholder(tf.float32, [BATCH_SIZE])
 
     return x, y_, mask
@@ -108,26 +108,26 @@ def BKNetModel(x):
     x = VGG_ConvBlock('Block3', x, 128, 256, 3, 1, phase_train)
     # print(x.get_shape())
 
-    x = VGG_ConvBlock('Block4', x, 512, 512, 3, 1, phase_train)
+    x = VGG_ConvBlock('Block4', x, 256, 512, 3, 1, phase_train)
     # print(x.get_shape())
     
     x = VGG_ConvBlock('Block5', x, 512, 512, 3, 1, phase_train)
     # print(x.get_shape())
 
     # Smile branch
-    smile_fc1 = _FC('smile_fc1', x, 256, keep_prob)
-    smile_fc2 = _FC('smile_fc2', smile_fc1, 256, keep_prob)
+    smile_fc1 = _FC('smile_fc1', x, 512, keep_prob)
+    smile_fc2 = _FC('smile_fc2', smile_fc1, 512, keep_prob)
     y_smile_conv = _FC('smile_softmax', smile_fc2, 2, keep_prob, 'softmax')
 
     # Gender branch
-    gender_fc1 = _FC('gender_fc1', x, 256, keep_prob)
-    gender_fc2 = _FC('gender_fc2', gender_fc1, 256, keep_prob)
+    gender_fc1 = _FC('gender_fc1', x, 512, keep_prob)
+    gender_fc2 = _FC('gender_fc2', gender_fc1, 512, keep_prob)
     y_gender_conv = _FC('gender_softmax', gender_fc2, 2, keep_prob, 'softmax')
 
     # Age branch
-    age_fc1 = _FC('age_fc1', x, 256, keep_prob)
-    age_fc2 = _FC('age_fc2', age_fc1, 256, keep_prob)
-    y_age_conv = _FC('age_softmax', age_fc2, 4, keep_prob, 'softmax')
+    age_fc1 = _FC('age_fc1', x, 512, keep_prob)
+    age_fc2 = _FC('age_fc2', age_fc1, 512, keep_prob)
+    y_age_conv = _FC('age_softmax', age_fc2, 101, keep_prob, 'softmax')
 
     return y_smile_conv, y_gender_conv, y_age_conv, phase_train, keep_prob
 
@@ -146,7 +146,7 @@ def selective_loss(y_smile_conv, y_gender_conv, y_age_conv, y_, mask):
 
     y_smile = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
     y_gender = tf.slice(y_, [0, 0], [BATCH_SIZE, 2])
-    y_age = tf.slice(y_, [0, 0], [BATCH_SIZE, 4])
+    y_age = tf.slice(y_, [0, 0], [BATCH_SIZE, 101])
 
     tf.add_to_collection('y_smile', y_smile)
     tf.add_to_collection('y_gender', y_gender)
