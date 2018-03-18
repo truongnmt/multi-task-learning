@@ -1,6 +1,6 @@
 .ipynb_checkpoints
 pkl_folder/*
 .idea/*
-.DS_Store
 data/*
+.DS_Store
 *.iml
