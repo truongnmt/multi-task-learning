@@ -12,5 +12,6 @@ BATCH_SIZE = 128
 
 USE_GPU = True
 SAVE_FOLDER = './save/current/'
+SAVE_FOLDER2 = './save/current2/'
 NUM_EPOCHS = 2000
 DROP_OUT_PROB = 0.5
