@@ -4,3 +4,5 @@ pkl_folder/*
 data/*
 .DS_Store
 *.iml
+save/current2/model-age101.ckpt.data-00000-of-00001
+
