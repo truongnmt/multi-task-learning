@@ -50,12 +50,12 @@ Run [evaluate.ipynb](./evaluate.ipynb) to evaluate learned model on test dataset
 
 ### Testing
 For single file, see [test.ipynb](./test.ipynb) file for more example.
-
-![demo single file](./screenshots/predict.png)
+ ![demo single file](./screenshots/predict.png)
 
 For demo on webcam, run [demo.py](./demo.py) file.
-
-![demo webcam](./screenshots/demo.gif)
+<div>
+<img src="./screenshots/demo.gif">
+</div>
 
 ### TODO
 * Augmentation for balanced label, reduce overfitting
