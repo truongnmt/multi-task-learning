@@ -99,34 +99,31 @@ def BKNetModel(x):
     phase_train = tf.placeholder(tf.bool)
     keep_prob = tf.placeholder(tf.float32)
 
-    x = VGG_ConvBlock('Block1', x, 1, 64, 2, 1, phase_train)
+    x = VGG_ConvBlock('Block1', x, 1, 32, 2, 1, phase_train)
     # print(x.get_shape())
 
-    x = VGG_ConvBlock('Block2', x, 64, 128, 2, 1, phase_train)
+    x = VGG_ConvBlock('Block2', x, 32, 64, 2, 1, phase_train)
     # print(x.get_shape())
 
-    x = VGG_ConvBlock('Block3', x, 128, 256, 3, 1, phase_train)
+    x = VGG_ConvBlock('Block3', x, 64, 128, 2, 1, phase_train)
     # print(x.get_shape())
 
-    x = VGG_ConvBlock('Block4', x, 256, 512, 3, 1, phase_train)
-    # print(x.get_shape())
-    
-    x = VGG_ConvBlock('Block5', x, 512, 512, 3, 1, phase_train)
+    x = VGG_ConvBlock('Block4', x, 128, 256, 3, 1, phase_train)
     # print(x.get_shape())
 
     # Smile branch
-    smile_fc1 = _FC('smile_fc1', x, 512, keep_prob)
-    smile_fc2 = _FC('smile_fc2', smile_fc1, 512, keep_prob)
+    smile_fc1 = _FC('smile_fc1', x, 256, keep_prob)
+    smile_fc2 = _FC('smile_fc2', smile_fc1, 256, keep_prob)
     y_smile_conv = _FC('smile_softmax', smile_fc2, 2, keep_prob, 'softmax')
 
     # Gender branch
-    gender_fc1 = _FC('gender_fc1', x, 512, keep_prob)
-    gender_fc2 = _FC('gender_fc2', gender_fc1, 512, keep_prob)
+    gender_fc1 = _FC('gender_fc1', x, 256, keep_prob)
+    gender_fc2 = _FC('gender_fc2', gender_fc1, 256, keep_prob)
     y_gender_conv = _FC('gender_softmax', gender_fc2, 2, keep_prob, 'softmax')
 
     # Age branch
-    age_fc1 = _FC('age_fc1', x, 512, keep_prob)
-    age_fc2 = _FC('age_fc2', age_fc1, 512, keep_prob)
+    age_fc1 = _FC('age_fc1', x, 256, keep_prob)
+    age_fc2 = _FC('age_fc2', age_fc1, 256, keep_prob)
     y_age_conv = _FC('age_softmax', age_fc2, 101, keep_prob, 'softmax')
 
     return y_smile_conv, y_gender_conv, y_age_conv, phase_train, keep_prob

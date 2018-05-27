@@ -5,7 +5,7 @@ import scipy
 import random
 
 SMILE_FOLDER = './data/smile_data/'
-GENDER_FOLDER = './data/gender_data/'
+GENDER_FOLDER = './data/gender_data_101/'
 AGE_FOLDER = './data/age_data_101/'
 NUM_SMILE_IMAGE = 4000
 SMILE_SIZE = 48
