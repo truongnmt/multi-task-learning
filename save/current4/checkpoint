@@ -1,0 +1,2 @@
+model_checkpoint_path: "model-age101.ckpt.index"
+all_model_checkpoint_paths: "model-age101.ckpt.index"
