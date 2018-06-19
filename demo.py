@@ -8,7 +8,7 @@ import os
 import cv2
 import numpy as np
 import tensorflow as tf
-import BKNetStyle
+import BKNetStyle2 as BKNetStyle
 from const import *
 from mtcnn.mtcnn import MTCNN
 
@@ -22,7 +22,7 @@ def load_network():
     y_smile_conv, y_gender_conv, y_age_conv, phase_train, keep_prob = BKNetStyle.BKNetModel(x)
     print('Restore model')
     saver = tf.train.Saver()
-    saver.restore(sess, SAVE_FOLDER + 'model.ckpt')
+    saver.restore(sess, './save/current5/model-age101.ckpt.index')
     print('OK')
     return sess, x, y_smile_conv, y_gender_conv, y_age_conv, phase_train, keep_prob
 
